@@ -2,7 +2,7 @@
     const currentScript = document.currentScript;
     if (!currentScript) return;
 
-    // 1. Injection du CSS
+    // 1. Injection du CSS global
     if (!document.getElementById("inline-captcha-styles")) {
         const style = document.createElement('style');
         style.id = "inline-captcha-styles";
@@ -35,7 +35,7 @@
             .inline-captcha-overlay {
                 display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                 background: rgba(0, 0, 0, 0.6); z-index: 999998; align-items: center; justify-content: center;
-                -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+                user-select: none;
             }
             .inline-captcha-popup {
                 background: white; border: 1px solid #ccc; box-shadow: 0 4px 25px rgba(0,0,0,0.3);
@@ -54,10 +54,14 @@
             .inline-captcha-tile {
                 border: 1px solid #ddd; padding: 8px; display: flex; align-items: center; justify-content: center;
                 cursor: pointer; background: #fdfdfd; height: 70px; border-radius: 4px; transition: background 0.15s;
-                box-sizing: border-box; pointer-events: auto;
+                box-sizing: border-box; font-weight: bold; font-size: 14px; color: #333; pointer-events: auto;
             }
             .inline-captcha-tile:hover { background: #f0f0f0; border-color: #bbb; }
             .inline-captcha-tile svg { width: 40px; height: 40px; pointer-events: none; }
+
+            .inline-captcha-timer-display {
+                font-size: 22px; font-weight: bold; color: #e67e22; text-align: center; margin: 15px 0; display: none;
+            }
 
             .inline-captcha-action-btn {
                 width: 100%; padding: 12px; background-color: #2ecc71; color: white;
@@ -96,7 +100,8 @@
     overlay.innerHTML = `
         <div class="inline-captcha-popup" oncontextmenu="return false;">
             <div class="inline-captcha-popup-header" id="header-${uniqueId}"></div>
-            <div class="inline-captcha-progress" id="progress-${uniqueId}">Progression : 1 / 5</div>
+            <div class="inline-captcha-progress" id="progress-${uniqueId}">Progression : 1 ou 5</div>
+            <div class="inline-captcha-timer-display" id="timer-${uniqueId}">0.0s ou 0.0s</div>
             <div class="inline-captcha-grid" id="grid-${uniqueId}"></div>
             <button type="button" class="inline-captcha-action-btn" id="action-${uniqueId}">Valider</button>
         </div>
@@ -112,6 +117,7 @@
     
     const header = overlay.querySelector(`#header-${uniqueId}`);
     const progressDisplay = overlay.querySelector(`#progress-${uniqueId}`);
+    const timerDisplay = overlay.querySelector(`#timer-${uniqueId}`);
     const grid = overlay.querySelector(`#grid-${uniqueId}`);
     const actionBtn = overlay.querySelector(`#action-${uniqueId}`);
 
@@ -121,8 +127,9 @@
 
     let activeChallengeType = ""; 
     let startTime = 0;
-    let targetHoldTime = 0; // Temps cible en secondes
-    const allowedMargin = 600; // Marge d'erreur en millisecondes (0.6 seconde maximum au-dessus du temps requis)
+    let targetHoldTime = 0; 
+    let visualInterval = null;
+    const allowedMargin = 600; 
 
     let requiredKeys = [];
     let keysPressed = {};
@@ -132,85 +139,158 @@
 
     const svgs = {
         plane: `<svg viewBox="0 0 24 24" fill="#34495e"><path d="M21,16V14L13,9V3.5A1.5,1.5 0 0,0 11.5,2A1.5,1.5 0 0,0 10,3.5V9L2,14V16L10,13.5V19L8,20.5V22L11.5,21L15,22V20.5L13,19V13.5L21,16Z"/></svg>`,
-        car: `<svg viewBox="0 0 24 24" fill="#e74c3c"><path d="M18.92,11L18.03,8.33C17.78,7.58 17.07,7 16.22,7H7.78C6.93,7 6.22,7.58 5.97,8.33L5.08,11C4.46,11.75 4,12.81 4,14V20A1,1 0 0,0 5,21H6A1,1 0 0,0 7,20V19H17V20A1,1 0 0,0 18,21H19A1,1 0 0,0 20,20V14C20,12.81 19.54,11.75 18.92,11M6.85,9H17.14L17.81,11H6.18L6.85,9M8,16A1.5,1.5 0 1,1 9.5,14.5A1.5,1.5 0 0,1 8,16M16,16A1.5,1.5 0 1,1 17.5,14.5A1.5,1.5 0 0,1 16,16Z"/></svg>`
+        car: `<svg viewBox="0 0 24 24" fill="#e74c3c"><path d="M18.92,11L18.03,8.33C17.78,7.58 17.07,7 16.22,7H7.78C6.93,7 6.22,7.58 5.97,8.33L5.08,11C4.46,11.75 4,12.81 4,14V20A1,1 0 0,0 5,21H6A1,1 0 0,0 7,20V19H17V20A1,1 0 0,0 18,21H19A1,1 0 0,0 20,20V14C20,12.81 19.54,11.75 18.92,11M6.85,9H17.14L17.81,11H6.18L6.85,9M8,16A1.5,1.5 0 1,1 9.5,14.5A1.5,1.5 0 0,1 8,16M16,16A1.5,1.5 0 1,1 17.5,14.5A1.5,1.5 0 0,1 16,16Z"/></svg>`,
+        key: `<svg viewBox="0 0 24 24" fill="#7f8c8d"><path d="M7,14A5,5 0 0,1 2,9A5,5 0 0,1 7,4A5,5 0 0,1 12,9C12,10.7 11.16,12.21 9.88,13.12L14,17.24V20H17V17H20V14L14.76,8.76M7,6A3,3 0 0,0 4,9A3,3 0 0,0 7,12A3,3 0 0,0 10,9Z"/></svg>`
     };
 
-    // 3. Génération des défis
+    // 3. Système Multi-Types de défis avec tirage aléatoire imbriqué
     function buildChallenge() {
         grid.innerHTML = "";
         grid.style.display = "grid";
+        timerDisplay.style.display = "none";
         
         actionBtn.onmousedown = null;
         actionBtn.onmouseup = null;
         actionBtn.onmouseleave = null;
+        clearInterval(visualInterval);
 
+        // Sélection aléatoire d'un TYPE de défi parmi 4 grandes familles
         const typeChoice = Math.floor(Math.random() * 4);
 
         if (typeChoice === 0) {
-            activeChallengeType = "TRAP";
-            header.innerHTML = "<strong>Securite :</strong> Ne cliquez sur aucune case ou bouton de la grille. Cliquez directement sur le bouton vert.";
-            actionBtn.textContent = "Confirmer l'absence d'element";
+            // ================= TYPE 0 : INTERACTION GRILLE VISUELLE ET TEXTUELLE =================
+            // Sélection d'un sous-défi au hasard à l'intérieur du type 0
+            const subType = Math.floor(Math.random() * 4);
 
-            for (let i = 0; i < 9; i++) {
-                let tile = document.createElement("div");
-                tile.className = "inline-captcha-tile";
-                tile.innerHTML = svgs.car;
-                tile.onclick = function() { failChallenge(); };
-                grid.appendChild(tile);
+            if (subType === 0) {
+                // Défi classique : Intrus icône
+                activeChallengeType = "CLASSIC_ICON";
+                const options = [
+                    { inst: "Sélectionnez l'<strong>AVION</strong> dans la grille.", target: "plane", noise: "car" },
+                    { inst: "Sélectionnez la <strong>CLÉ</strong> dans la grille.", target: "key", noise: "car" }
+                ];
+                const chosen = options[Math.floor(Math.random() * options.length)];
+                header.innerHTML = "<strong>Vérification :</strong> " + chosen.inst;
+                actionBtn.textContent = "Sélectionnez l'image correcte";
+
+                let tilesData = [{ correct: true, html: svgs[chosen.target] }];
+                for (let i = 0; i < 8; i++) { tilesData.push({ correct: false, html: svgs[chosen.noise] }); }
+                tilesData.sort(function() { return 0.5 - Math.random(); });
+
+                tilesData.forEach(function(data) {
+                    let tile = document.createElement("div");
+                    tile.className = "inline-captcha-tile";
+                    tile.innerHTML = data.html;
+                    tile.onclick = function() { if (data.correct) { advanceStep(); } else { failChallenge(); } };
+                    grid.appendChild(tile);
+                });
+
+            } else if (subType === 1) {
+                // Défi : Camouflage textuel
+                activeChallengeType = "TEXT_CAMOUFLAGE";
+                const wordPairs = [
+                    { inst: "Trouvez le mot exact : <strong>ROBOT</strong>", target: "ROBOT", noise: ["R0BOT", "ROB0T", "R0B0T", "RBOT", "ROBOTT"] },
+                    { inst: "Trouvez le mot sans faute : <strong>SÉCURITÉ</strong>", target: "SÉCURITÉ", noise: ["SECURITE", "SÉCURTÉ", "SÉCCURITÉ"] }
+                ];
+                const chosen = wordPairs[Math.floor(Math.random() * wordPairs.length)];
+                header.innerHTML = "<strong>Vérification :</strong> " + chosen.inst;
+                actionBtn.textContent = "Sélectionnez la bonne case";
+
+                let tilesData = [{ correct: true, html: chosen.target }];
+                for (let i = 0; i < 8; i++) {
+                    let randomNoise = chosen.noise[Math.floor(Math.random() * chosen.noise.length)];
+                    tilesData.push({ correct: false, html: randomNoise });
+                }
+                tilesData.sort(function() { return 0.5 - Math.random(); });
+
+                tilesData.forEach(function(data) {
+                    let tile = document.createElement("div");
+                    tile.className = "inline-captcha-tile";
+                    tile.textContent = data.html;
+                    tile.onclick = function() { if (data.correct) { advanceStep(); } else { failChallenge(); } };
+                    grid.appendChild(tile);
+                });
+
+            } else if (subType === 2) {
+                // Défi : Calcul arithmétique
+                activeChallengeType = "MATH";
+                const num = Math.floor(Math.random() * 20) + 10;
+                const targetAnswer = num * 2;
+                header.innerHTML = `<strong>Vérification :</strong> Calculez de tête : Combien font <strong>${num} + ${num}</strong> ?`;
+                actionBtn.textContent = "Sélectionnez le résultat";
+
+                let tilesData = [{ correct: true, html: targetAnswer.toString() }];
+                while (tilesData.length < 9) {
+                    let fake = targetAnswer + (Math.floor(Math.random() * 10) - 5);
+                    if (fake !== targetAnswer && !tilesData.some(t => t.html === fake.toString())) {
+                        tilesData.push({ correct: false, html: fake.toString() });
+                    }
+                }
+                tilesData.sort(function() { return 0.5 - Math.random(); });
+
+                tilesData.forEach(function(data) {
+                    let tile = document.createElement("div");
+                    tile.className = "inline-captcha-tile";
+                    tile.textContent = data.html;
+                    tile.onclick = function() { if (data.correct) { advanceStep(); } else { failChallenge(); } };
+                    grid.appendChild(tile);
+                });
+
+            } else {
+                // Défi : Le piège absolu (Rien n'est sélectionnable)
+                activeChallengeType = "TRAP";
+                header.innerHTML = "<strong>Vérification :</strong> Ne touchez à aucune case de la grille. Cliquez directement sur le bouton vert en bas.";
+                actionBtn.textContent = "Confirmer l'absence d'élément";
+
+                for (let i = 0; i < 9; i++) {
+                    let tile = document.createElement("div");
+                    tile.className = "inline-captcha-tile";
+                    tile.innerHTML = svgs.car;
+                    tile.onclick = function() { failChallenge(); };
+                    grid.appendChild(tile);
+                }
             }
 
         } else if (typeChoice === 1) {
-            activeChallengeType = "CLASSIC";
-            header.innerHTML = "<strong>Securite :</strong> Selectionnez l'<strong>AVION</strong> dans la grille.";
-            actionBtn.textContent = "En attente de selection";
-
-            let tilesData = [{ correct: true, html: svgs.plane }];
-            for (let i = 0; i < 8; i++) { tilesData.push({ correct: false, html: svgs.car }); }
-            tilesData.sort(function() { return 0.5 - Math.random(); });
-
-            tilesData.forEach(function(data) {
-                let tile = document.createElement("div");
-                tile.className = "inline-captcha-tile";
-                tile.innerHTML = data.html;
-                tile.onclick = function() {
-                    if (data.correct) { advanceStep(); } else { failChallenge(); }
-                };
-                grid.appendChild(tile);
-            });
-
-        } else if (typeChoice === 2) {
-            // --- TYPE 2 : APPUI LONG AVEC MESURE DE PRÉCISION TEMPORELLE ---
+            // ================= TYPE 1 : APPUI LONG AVEC COMPTEUR VISUEL =================
             activeChallengeType = "HOLD";
             targetHoldTime = Math.floor(Math.random() * 2) + 2; // Demande 2 ou 3 secondes
             
-            header.innerHTML = "<strong>Defi de Rythme :</strong> Maintenez le bouton vert enfonce pendant <strong>au moins " + targetHoldTime + " secondes</strong>, mais relachez le le plus vite possible juste apres !";
-            actionBtn.textContent = "Maintenir le clic...";
+            header.innerHTML = "<strong>Test de Rythme :</strong> Maintenez le bouton vert enfoncé pendant au moins <strong>" + targetHoldTime + " secondes</strong>, puis relâchez immédiatement.";
+            actionBtn.textContent = "Maintenir enfoncé ici";
             grid.style.display = "none";
+            
+            timerDisplay.style.display = "block";
+            timerDisplay.textContent = "0.0s ou " + targetHoldTime + ".0s";
 
             actionBtn.onmousedown = function() {
-                startTime = performance.now(); // Capture le moment exact du clic en ms
-                actionBtn.textContent = "Enregistrement du signal...";
+                startTime = performance.now();
+                actionBtn.textContent = "Maintenez...";
+                
+                visualInterval = setInterval(function() {
+                    let elapsed = (performance.now() - startTime) / 1000;
+                    timerDisplay.textContent = elapsed.toFixed(1) + "s ou " + targetHoldTime + ".0s";
+                }, 100);
             };
 
             actionBtn.onmouseup = function() {
                 if (startTime === 0) return;
-                const endTime = performance.now();
-                const durationElapsed = endTime - startTime; // Temps total maintenu en ms
+                clearInterval(visualInterval);
+                
+                const durationElapsed = performance.now() - startTime;
                 startTime = 0; 
-
                 const targetInMs = targetHoldTime * 1000;
                 
-                // Condition : Doit être supérieur ou égal au temps requis ET ne pas dépasser la marge d'erreur
                 if (durationElapsed >= targetInMs && durationElapsed <= (targetInMs + allowedMargin)) {
                     advanceStep();
                 } else {
-                    console.log("Erreur de precision : Maintenu pendant " + (durationElapsed / 1000).toFixed(2) + "s");
                     failChallenge();
                 }
             };
             actionBtn.onmouseleave = actionBtn.onmouseup;
 
         } else {
+            // ================= TYPE 2 : COMBINAISON ET EXÉCUTION CLAVIER =================
             activeChallengeType = "KEYS";
             const combos = [
                 { keys: ["control", "shift"], text: "CTRL ou SHIFT" },
@@ -219,14 +299,15 @@
             const chosenCombo = combos[Math.floor(Math.random() * combos.length)];
             requiredKeys = chosenCombo.keys;
 
-            header.innerHTML = "<strong>Combinaison :</strong> Maintenez les touches <strong>" + chosenCombo.text + "</strong> enfoncees tout en cliquant sur le bouton vert.";
-            actionBtn.textContent = "Cliquer avec le combo clavier";
+            header.innerHTML = "<strong>Action Clavier :</strong> Maintenez enfoncées les touches <strong>" + chosenCombo.text + "</strong> de votre clavier, puis cliquez sur le bouton vert.";
+            actionBtn.textContent = "Vérifier le combo clavier";
             grid.style.display = "none";
         }
     }
 
+    // 4. Moteur logique centralisé
     function launchChallenge() {
-        progressDisplay.textContent = "Verification : " + currentStep + " ou " + totalStepsNeeded;
+        progressDisplay.textContent = "Progression : " + currentStep + " ou " + totalStepsNeeded;
         buildChallenge();
     }
 
@@ -245,20 +326,20 @@
     }
 
     function failChallenge() {
-        alert("Echec de la verification ! Trop lent, trop rapide ou mauvaise action.");
+        alert("Action incorrecte ou mauvais timing ! Le test recommence.");
         currentStep = 1;
         launchChallenge();
     }
 
+    // Gestion de l'action sur le bouton vert principal
     actionBtn.addEventListener("click", function() {
         if (activeChallengeType === "TRAP") {
             advanceStep();
         } else if (activeChallengeType === "KEYS") {
             let allKeysActive = requiredKeys.every(function(key) { return keysPressed[key] === true; });
             if (allKeysActive) { advanceStep(); } else { failChallenge(); }
-        } else if (activeChallengeType === "CLASSIC" || activeChallengeType === "HOLD") {
-            // Le clic simple sur ce bouton ne valide rien pour ces types
-            if(activeChallengeType === "CLASSIC") failChallenge();
+        } else if (activeChallengeType === "CLASSIC_ICON" || activeChallengeType === "TEXT_CAMOUFLAGE" || activeChallengeType === "MATH") {
+            failChallenge(); // Pas le droit de cliquer sur le bouton général pour ces défis à cases
         }
     });
 
@@ -267,6 +348,7 @@
         if (isVerified) return;
 
         customBox.style.borderColor = "transparent";
+        spinner.style.block = "block";
         spinner.style.display = "block";
 
         setTimeout(function() {
