@@ -2,7 +2,7 @@
     const currentScript = document.currentScript;
     if (!currentScript) return;
 
-    // 1. Injection du CSS mis à jour avec barre de progression
+    // 1. Injection du CSS
     if (!document.getElementById("inline-captcha-styles")) {
         const style = document.createElement('style');
         style.id = "inline-captcha-styles";
@@ -117,21 +117,24 @@
             }
             .inline-captcha-tile {
                 border: 1px solid #ddd;
-                padding: 15px 10px;
-                text-align: center;
+                padding: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 cursor: pointer;
                 background: #fdfdfd;
-                font-size: 24px;
+                height: 60px;
                 border-radius: 4px;
                 transition: background 0.15s;
-                user-select: none;
+                box-sizing: border-box;
             }
             .inline-captcha-tile:hover { background: #f0f0f0; border-color: #bbb; }
+            .inline-captcha-tile svg { width: 36px; height: 36px; }
         `;
         document.head.appendChild(style);
     }
 
-    // 2. Structure HTML
+    // 2. Création de la structure
     const uniqueId = Math.random().toString(36).substr(2, 9);
     const widget = document.createElement("div");
     widget.className = "inline-captcha-container";
@@ -166,7 +169,6 @@
     currentScript.parentNode.insertBefore(widget, currentScript);
     document.body.appendChild(overlay);
 
-    // 3. Variables de ciblage DOM
     const label = widget.querySelector(`#label-${uniqueId}`);
     const customBox = widget.querySelector(`#box-${uniqueId}`);
     const spinner = widget.querySelector(`#spinner-${uniqueId}`);
@@ -180,65 +182,74 @@
     let currentStep = 1;
     const totalStepsNeeded = 5;
 
-    // BANQUE DE 10 DÉFIS UNIQUES
+    // 3. DICTIONNAIRE DES DESSINS SVG (Pas de texte informatique lisible)
+    const svgs = {
+        circle: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#e74c3c"/></svg>`,
+        square: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" fill="#3498db"/></svg>`,
+        triangle: `<svg viewBox="0 0 24 24"><polygon points="12,3 2,21 22,21" fill="#2ecc71"/></svg>`,
+        star: `<svg viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9" fill="#f1c40f"/></svg>`,
+        diamond: `<svg viewBox="0 0 24 24"><polygon points="12,2 22,12 12,22 2,12" fill="#9b59b6"/></svg>`,
+        cross: `<svg viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" fill="#7f8c8d"/></svg>`,
+        heart: `<svg viewBox="0 0 24 24"><path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.41,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.59,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" fill="#e91e63"/></svg>`,
+        moon: `<svg viewBox="0 0 24 24"><path d="M12.3,2a10,10,0,0,0-1.9,19.8,10.4,10.4,0,0,0,1-.1,10,10,0,0,1,1-.5,10,10,0,0,1,8.1-10,10.1,10.1,0,0,0-1-1.7A10,10,0,0,0,12.3,2Z" fill="#f39c12"/></svg>`,
+        hexagon: `<svg viewBox="0 0 24 24"><polygon points="12,2 21,7 21,17 12,22 3,17 3,7" fill="#1abc9c"/></svg>`,
+        ring: `<svg viewBox="0 0 24 24"><path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,16a6,6,0,1,1,6-6A6,6,0,0,1,12,18Z" fill="#34495e"/></svg>`
+    };
+
+    // BANQUE DES 10 DÉFIS GÉOMÉTRIQUES BASÉS SUR LES CLÉS SVG
     const challenges = [
-        { instruction: "Sélectionnez le <strong>CARRÉ (⬛)</strong>.", target: "⬛", noise: ["🔺", "🔵", "⭐", "🔶", "🛑"] },
-        { instruction: "Sélectionnez le <strong>CHAT (🐱)</strong>.", target: "🐱", noise: ["🚗", "🍏", "🍕", "⏰", "✈️"] },
-        { instruction: "Sélectionnez la <strong style='color:#3498db;'>VOITURE BLEUE (🚙)</strong>.", target: "🚙", noise: ["🚗", "🚕", "🚑", "🚒", "🚜"] },
-        { instruction: "Sélectionnez la <strong>POMME VERTE (🍏)</strong>.", target: "🍏", noise: ["🏀", "🚀", "🦊", "🍦", "🛸"] },
-        { instruction: "Sélectionnez le <strong>MARTEAU (🔨)</strong>.", target: "🔨", noise: ["🍩", "🍍", "🦁", "🛹", "🎈"] },
-        { instruction: "Sélectionnez l'<strong>AVION (✈️)</strong>.", target: "✈️", noise: ["⛵", "🚲", "🛴", "🛺", "🛸"] },
-        { instruction: "Sélectionnez le <strong>BALLON DE FOOT (⚽)</strong>.", target: "⚽", noise: ["🏀", "🏈", "🎾", "🏐", "🎱"] },
-        { instruction: "Sélectionnez la <strong>PIZZA (🍕)</strong>.", target: "🍕", noise: ["🍔", "🍟", "🌭", "🍣", "🍦"] },
-        { instruction: "Sélectionnez la <strong>GUITARE (🎸)</strong>.", target: "🎸", noise: ["🎨", "🎧", "🎮", "🎲", "🎬"] },
-        { instruction: "Sélectionnez la <strong style='color:#e74c3c;'>VALISE ROUGE (🧳)</strong>.", target: "🧳", noise: ["👜", "🎒", "💼", "👛", "📁"] }
+        { instruction: "Sélectionnez le <strong>CERCLE ROUGE</strong>.", target: "circle", noise: ["square", "triangle", "star", "diamond", "cross"] },
+        { instruction: "Sélectionnez le <strong>CARRÉ BLEU</strong>.", target: "square", noise: ["circle", "triangle", "heart", "moon", "hexagon"] },
+        { instruction: "Sélectionnez le <strong>TRIANGLE VERT</strong>.", target: "triangle", noise: ["square", "star", "cross", "ring", "diamond"] },
+        { instruction: "Sélectionnez l'<strong>ÉTOILE JAUNE</strong>.", target: "star", noise: ["circle", "heart", "moon", "hexagon", "ring"] },
+        { instruction: "Sélectionnez le <strong>LOSANGE VIOLET</strong>.", target: "diamond", noise: ["square", "triangle", "cross", "heart", "hexagon"] },
+        { instruction: "Sélectionnez la <strong style='color:#7f8c8d;'>CROIX GRISE</strong>.", target: "cross", noise: ["circle", "star", "moon", "ring", "triangle"] },
+        { instruction: "Sélectionnez le <strong style='color:#e91e63;'>CŒUR ROSE</strong>.", target: "heart", noise: ["square", "diamond", "hexagon", "ring", "cross"] },
+        { instruction: "Sélectionnez le <strong>CROISSANT DE LUNE</strong>.", target: "moon", noise: ["circle", "star", "triangle", "diamond", "hexagon"] },
+        { instruction: "Sélectionnez l'<strong>HEXAGONE TURQUOISE</strong>.", target: "hexagon", noise: ["square", "heart", "cross", "ring", "star"] },
+        { instruction: "Sélectionnez l'<strong>ANNEAU SOMBRE</strong>.", target: "ring", noise: ["circle", "triangle", "diamond", "moon", "heart"] }
     ];
 
-    // 4. Logique du jeu de défis
+    // 4. Moteur de rendu des défis
     function launchChallenge() {
         grid.innerHTML = "";
         progressDisplay.textContent = "Defi : " + currentStep + " ou " + totalStepsNeeded;
         
-        // Choisir un défi aléatoire parmi les 10
         const currentChallenge = challenges[Math.floor(Math.random() * challenges.length)];
         header.innerHTML = "<strong>Défi de sécurité :</strong><br>" + currentChallenge.instruction;
 
-        // Construire le set de 9 cases
         let items = [currentChallenge.target];
         for (let i = 0; i < 8; i++) {
             const randomNoise = currentChallenge.noise[Math.floor(Math.random() * currentChallenge.noise.length)];
             items.push(randomNoise);
         }
 
-        // Mélanger la grille
         items.sort(function() { return 0.5 - Math.random(); });
 
-        // Générer les tuiles cliquables
-        items.forEach(function(icon) {
+        items.forEach(function(type) {
             const tile = document.createElement("div");
             tile.className = "inline-captcha-tile";
-            tile.textContent = icon;
+            
+            // On injecte directement le code brut du SVG (pas de texte)
+            tile.innerHTML = svgs[type];
             
             tile.addEventListener("click", function() {
-                if (icon === currentChallenge.target) {
+                if (type === currentChallenge.target) {
                     if (currentStep >= totalStepsNeeded) {
-                        // VICTOIRE TOTALE DES 5 ÉTAPES
                         overlay.style.display = "none";
                         spinner.style.display = "none";
                         customBox.style.backgroundColor = "transparent";
                         checkmark.style.display = "block";
                         isVerified = true;
                         
-                        console.log("Les 5 defis ont ete reussis");
+                        console.log("Les 5 etapes en SVG sont validees");
                         document.dispatchEvent(new CustomEvent("captchaSuccess", { detail: { id: uniqueId } }));
                     } else {
-                        // ÉTAPE SUIVANTE
                         currentStep++;
                         launchChallenge();
                     }
                 } else {
-                    // ÉCHEC : Reset complet à 1 ou 5
-                    console.log("Erreur dans le choix. Reset du score");
+                    console.log("Erreur visuelle. Reinitialisation");
                     alert("Erreur ! Recommencez depuis le debut.");
                     currentStep = 1;
                     launchChallenge();
@@ -248,7 +259,6 @@
         });
     }
 
-    // Gestion du clic de base
     label.addEventListener("click", function(e) {
         e.preventDefault();
         if (isVerified) return;
@@ -257,7 +267,7 @@
         spinner.style.display = "block";
 
         setTimeout(function() {
-            currentStep = 1; // Reset de sécurité à chaque ouverture volontaire
+            currentStep = 1;
             launchChallenge();
             overlay.style.display = "flex";
         }, 800);
