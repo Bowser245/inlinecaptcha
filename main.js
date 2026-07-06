@@ -75,7 +75,7 @@
     const uniqueId = Math.random().toString(36).substr(2, 9);
     
     captchaContainer.innerHTML = `
-        <div class="custom-captcha-header">Sécurité : Vérification</div>
+        <div class="custom-captcha-header">InlineCaptcha</div>
         <div class="custom-captcha-display" id="code-${uniqueId}"></div>
         <input type="text" class="custom-captcha-input" id="input-${uniqueId}" placeholder="Entrez le code ci-dessus" autocomplete="off"/>
         <button type="button" class="custom-captcha-btn" id="btn-${uniqueId}">Vérifier</button>
