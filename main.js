@@ -83,7 +83,7 @@
                 border: 1px solid #ccc;
                 box-shadow: 0 4px 25px rgba(0,0,0,0.3);
                 border-radius: 6px;
-                width: 320px;
+                width: 340px;
                 padding: 20px;
                 box-sizing: border-box;
                 animation: inline-fadein 0.2s ease-out;
@@ -112,29 +112,29 @@
             .inline-captcha-grid {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
-                gap: 12px;
+                gap: 10px;
                 margin-bottom: 15px;
             }
             .inline-captcha-tile {
                 border: 1px solid #ddd;
-                padding: 10px;
+                padding: 8px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
                 background: #fdfdfd;
-                height: 60px;
+                height: 70px;
                 border-radius: 4px;
                 transition: background 0.15s;
                 box-sizing: border-box;
             }
             .inline-captcha-tile:hover { background: #f0f0f0; border-color: #bbb; }
-            .inline-captcha-tile svg { width: 36px; height: 36px; }
+            .inline-captcha-tile svg { width: 42px; height: 42px; }
         `;
         document.head.appendChild(style);
     }
 
-    // 2. Création de la structure
+    // 2. Structure HTML du widget
     const uniqueId = Math.random().toString(36).substr(2, 9);
     const widget = document.createElement("div");
     widget.className = "inline-captcha-container";
@@ -182,35 +182,35 @@
     let currentStep = 1;
     const totalStepsNeeded = 5;
 
-    // 3. DICTIONNAIRE DES DESSINS SVG (Pas de texte informatique lisible)
+    // 3. DICTIONNAIRE DES SVGS DES COMPOSANTS (Look Émojis / Icônes concrètes)
     const svgs = {
-        circle: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#e74c3c"/></svg>`,
-        square: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" fill="#3498db"/></svg>`,
-        triangle: `<svg viewBox="0 0 24 24"><polygon points="12,3 2,21 22,21" fill="#2ecc71"/></svg>`,
-        star: `<svg viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9" fill="#f1c40f"/></svg>`,
-        diamond: `<svg viewBox="0 0 24 24"><polygon points="12,2 22,12 12,22 2,12" fill="#9b59b6"/></svg>`,
-        cross: `<svg viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" fill="#7f8c8d"/></svg>`,
-        heart: `<svg viewBox="0 0 24 24"><path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.41,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.59,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" fill="#e91e63"/></svg>`,
-        moon: `<svg viewBox="0 0 24 24"><path d="M12.3,2a10,10,0,0,0-1.9,19.8,10.4,10.4,0,0,0,1-.1,10,10,0,0,1,1-.5,10,10,0,0,1,8.1-10,10.1,10.1,0,0,0-1-1.7A10,10,0,0,0,12.3,2Z" fill="#f39c12"/></svg>`,
-        hexagon: `<svg viewBox="0 0 24 24"><polygon points="12,2 21,7 21,17 12,22 3,17 3,7" fill="#1abc9c"/></svg>`,
-        ring: `<svg viewBox="0 0 24 24"><path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,16a6,6,0,1,1,6-6A6,6,0,0,1,12,18Z" fill="#34495e"/></svg>`
+        plane: `<svg viewBox="0 0 24 24" fill="#34495e"><path d="M21,16V14L13,9V3.5A1.5,1.5 0 0,0 11.5,2A1.5,1.5 0 0,0 10,3.5V9L2,14V16L10,13.5V19L8,20.5V22L11.5,21L15,22V20.5L13,19V13.5L21,16Z"/></svg>`,
+        car: `<svg viewBox="0 0 24 24" fill="#e74c3c"><path d="M18.92,11L18.03,8.33C17.78,7.58 17.07,7 16.22,7H7.78C6.93,7 6.22,7.58 5.97,8.33L5.08,11C4.46,11.75 4,12.81 4,14V20A1,1 0 0,0 5,21H6A1,1 0 0,0 7,20V19H17V20A1,1 0 0,0 18,21H19A1,1 0 0,0 20,20V14C20,12.81 19.54,11.75 18.92,11M6.85,9H17.14L17.81,11H6.18L6.85,9M8,16A1.5,1.5 0 1,1 9.5,14.5A1.5,1.5 0 0,1 8,16M16,16A1.5,1.5 0 1,1 17.5,14.5A1.5,1.5 0 0,1 16,16Z"/></svg>`,
+        pizza: `<svg viewBox="0 0 24 24" fill="#f1c40f"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12C20,14.43 18.91,16.61 17.17,18.08L12,5.16V4M10,5.63L14.75,17.5C13.9,17.83 12.97,18 12,18A6,6 0 0,1 6,12C6,9.45 7.59,7.27 9.87,6.33L10,5.63M12,9A1,1 0 0,0 11,10A1,1 0 0,0 12,11A1,1 0 0,0 13,10A1,1 0 0,0 12,9M16,12A1,1 0 0,0 15,13A1,1 0 0,0 16,14A1,1 0 0,0 17,13A1,1 0 0,0 16,12Z"/></svg>`,
+        bike: `<svg viewBox="0 0 24 24" fill="#2ecc71"><path d="M15.5,5.5A1.5,1.5 0 0,1 14,4A1.5,1.5 0 0,1 15.5,2.5A1.5,1.5 0 0,1 17,4A1.5,1.5 0 0,1 15.5,5.5M5,20A3,3 0 0,1 2,17A3,3 0 0,1 5,14A3,3 0 0,1 8,17A3,3 0 0,1 5,20M5,15.5A1.5,1.5 0 0,0 3.5,17A1.5,1.5 0 0,0 5,18.5A1.5,1.5 0 0,0 6.5,17A1.5,1.5 0 0,0 5,15.5M19,20A3,3 0 0,1 16,17A3,3 0 0,1 19,14A3,3 0 0,1 22,17A3,3 0 0,1 19,20M19,15.5A1.5,1.5 0 0,0 17.5,17A1.5,1.5 0 0,0 19,18.5A1.5,1.5 0 0,0 20.5,17A1.5,1.5 0 0,0 19,15.5M11,10.5H13V13.75L16.25,17H14.25L11.75,14.5L11,13.75V10.5M12.2,9H17V7.5H13.5L11.3,4.4C11.1,4.1 10.8,4 10.5,4C10.2,4 9.9,4.1 9.7,4.4L6,9.5V14H7.5V10.5L10.2,6.9L12.2,9Z"/></svg>`,
+        coffee: `<svg viewBox="0 0 24 24" fill="#9b59b6"><path d="M2,21H20V19H2V21M20,8H18V5H20V8M2,3V15A4,4 0 0,0 6,19H14A4,4 0 0,0 18,15V3H2M16,5V8H4V5H16M4,10H16V15A2,2 0 0,1 14,17H6A2,2 0 0,1 4,15V10Z"/></svg>`,
+        umbrella: `<svg viewBox="0 0 24 24" fill="#1abc9c"><path d="M12,2C17.5,2 22,6.5 22,12H13V21A1.5,1.5 0 0,1 11.5,22.5A1.5,1.5 0 0,1 10,21V20H11V12H2C2,6.5 6.5,2 12,2Z"/></svg>`,
+        cloud: `<svg viewBox="0 0 24 24" fill="#3498db"><path d="M19.35,10.04C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.04C2.34,8.36 0,10.91 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.04Z"/></svg>`,
+        bell: `<svg viewBox="0 0 24 24" fill="#f39c12"><path d="M12,2A2,2 0 0,0 10,4V4.29C7.12,5.14 5,7.82 5,11V17L3,19V20H21V19L19,17V11C19,7.82 16.88,5.14 14,4.29V4A2,2 0 0,0 12,2M10,21A2,2 0 0,0 12,23A2,2 0 0,0 14,21H10Z"/></svg>`,
+        key: `<svg viewBox="0 0 24 24" fill="#7f8c8d"><path d="M7,14A5,5 0 0,1 2,9A5,5 0 0,1 7,4A5,5 0 0,1 12,9C12,10.7 11.16,12.21 9.88,13.12L14,17.24V20H17V17H20V14L14.76,8.76C14.91,8.19 15,7.61 15,7A8,8 0 0,0 7,1A8,8 0 0,0 -1,9A8,8 0 0,0 7,17C7.61,17 8.19,16.91 8.76,16.76L7,15V14M7,6A3,3 0 0,0 4,9A3,3 0 0,0 7,12A3,3 0 0,0 10,9A3,3 0 0,0 7,6Z"/></svg>`,
+        gift: `<svg viewBox="0 0 24 24" fill="#e91e63"><path d="M20,6H16.22A3,3 0 0,0 12,2A3,3 0 0,0 7.78,6H4A2,2 0 0,0 2,8V11A2,2 0 0,0 3.32,12.53L4.4,20.06A2,2 0 0,0 6.4,22H17.6A2,2 0 0,0 19.6,20.06L20.68,12.53A2,2 0 0,0 22,11V8A2,2 0 0,0 20,6M12,4A1,1 0 0,1 13,5A1,1 0 0,1 12,6A1,1 0 0,1 11,5A1,1 0 0,1 12,4M11,8V12H4V8H11M20,11H13V8H20V11M17.41,20H13V14H18.53L17.41,20M11,20H6.59L5.47,14H11V20Z"/></svg>`
     };
 
-    // BANQUE DES 10 DÉFIS GÉOMÉTRIQUES BASÉS SUR LES CLÉS SVG
+    // 4. BANQUE DE 10 DÉFIS TEXTUELS D'OBJETS
     const challenges = [
-        { instruction: "Sélectionnez le <strong>CERCLE ROUGE</strong>.", target: "circle", noise: ["square", "triangle", "star", "diamond", "cross"] },
-        { instruction: "Sélectionnez le <strong>CARRÉ BLEU</strong>.", target: "square", noise: ["circle", "triangle", "heart", "moon", "hexagon"] },
-        { instruction: "Sélectionnez le <strong>TRIANGLE VERT</strong>.", target: "triangle", noise: ["square", "star", "cross", "ring", "diamond"] },
-        { instruction: "Sélectionnez l'<strong>ÉTOILE JAUNE</strong>.", target: "star", noise: ["circle", "heart", "moon", "hexagon", "ring"] },
-        { instruction: "Sélectionnez le <strong>LOSANGE VIOLET</strong>.", target: "diamond", noise: ["square", "triangle", "cross", "heart", "hexagon"] },
-        { instruction: "Sélectionnez la <strong style='color:#7f8c8d;'>CROIX GRISE</strong>.", target: "cross", noise: ["circle", "star", "moon", "ring", "triangle"] },
-        { instruction: "Sélectionnez le <strong style='color:#e91e63;'>CŒUR ROSE</strong>.", target: "heart", noise: ["square", "diamond", "hexagon", "ring", "cross"] },
-        { instruction: "Sélectionnez le <strong>CROISSANT DE LUNE</strong>.", target: "moon", noise: ["circle", "star", "triangle", "diamond", "hexagon"] },
-        { instruction: "Sélectionnez l'<strong>HEXAGONE TURQUOISE</strong>.", target: "hexagon", noise: ["square", "heart", "cross", "ring", "star"] },
-        { instruction: "Sélectionnez l'<strong>ANNEAU SOMBRE</strong>.", target: "ring", noise: ["circle", "triangle", "diamond", "moon", "heart"] }
+        { instruction: "Sélectionnez l'<strong>AVION</strong>.", target: "plane", noise: ["car", "bike", "umbrella", "cloud", "key"] },
+        { instruction: "Sélectionnez la <strong>VOITURE</strong>.", target: "car", noise: ["plane", "pizza", "coffee", "bell", "gift"] },
+        { instruction: "Sélectionnez la <strong>PIZZA</strong>.", target: "pizza", noise: ["coffee", "umbrella", "bike", "key", "cloud"] },
+        { instruction: "Sélectionnez le <strong>VÉLO</strong>.", target: "bike", noise: ["car", "plane", "gift", "bell", "coffee"] },
+        { instruction: "Sélectionnez la tasse de <strong>CAFÉ</strong>.", target: "coffee", noise: ["pizza", "umbrella", "cloud", "key", "bell"] },
+        { instruction: "Sélectionnez le <strong>PARAPLUIE</strong>.", target: "umbrella", noise: ["cloud", "plane", "car", "gift", "bike"] },
+        { instruction: "Sélectionnez le <strong>NUAGE</strong>.", target: "cloud", noise: ["umbrella", "pizza", "coffee", "key", "bell"] },
+        { instruction: "Sélectionnez la <strong>CLOCHETTE</strong>.", target: "bell", noise: ["key", "gift", "plane", "car", "bike"] },
+        { instruction: "Sélectionnez la <strong>CLÉ</strong>.", target: "key", noise: ["bell", "coffee", "pizza", "umbrella", "cloud"] },
+        { instruction: "Sélectionnez le <strong>CADEAU</strong>.", target: "gift", noise: ["plane", "car", "bike", "umbrella", "cloud"] }
     ];
 
-    // 4. Moteur de rendu des défis
+    // 5. Moteur logique du CAPTCHA
     function launchChallenge() {
         grid.innerHTML = "";
         progressDisplay.textContent = "Defi : " + currentStep + " ou " + totalStepsNeeded;
@@ -230,27 +230,28 @@
             const tile = document.createElement("div");
             tile.className = "inline-captcha-tile";
             
-            // On injecte directement le code brut du SVG (pas de texte)
+            // Injection de l'icône SVG correspondante
             tile.innerHTML = svgs[type];
             
             tile.addEventListener("click", function() {
                 if (type === currentChallenge.target) {
                     if (currentStep >= totalStepsNeeded) {
+                        // REUSSITE DES 5 ETAPES
                         overlay.style.display = "none";
                         spinner.style.display = "none";
                         customBox.style.backgroundColor = "transparent";
                         checkmark.style.display = "block";
                         isVerified = true;
                         
-                        console.log("Les 5 etapes en SVG sont validees");
+                        console.log("Les 5 etapes visuelles ont ete franchies");
                         document.dispatchEvent(new CustomEvent("captchaSuccess", { detail: { id: uniqueId } }));
                     } else {
                         currentStep++;
                         launchChallenge();
                     }
                 } else {
-                    console.log("Erreur visuelle. Reinitialisation");
-                    alert("Erreur ! Recommencez depuis le debut.");
+                    console.log("Mauvais choix d'objet. Reset");
+                    alert("Erreur ! Recommencez la serie.");
                     currentStep = 1;
                     launchChallenge();
                 }
