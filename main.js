@@ -2,7 +2,7 @@
     const currentScript = document.currentScript;
     if (!currentScript) return;
 
-    // 1. Injection du CSS (Widget + Pop-up du Défi)
+    // 1. Injection du CSS mis à jour avec barre de progression
     if (!document.getElementById("inline-captcha-styles")) {
         const style = document.createElement('style');
         style.id = "inline-captcha-styles";
@@ -21,7 +21,6 @@
                 box-sizing: border-box;
                 box-shadow: 0 0 4px rgba(0,0,0,0.08);
                 margin: 15px 0;
-                position: relative;
             }
             .inline-captcha-left {
                 display: flex;
@@ -41,7 +40,6 @@
             }
             .inline-captcha-text { color: #282828; font-size: 14px; }
             
-            /* Spinner animatique */
             .inline-captcha-spinner {
                 display: none;
                 width: 20px;
@@ -69,55 +67,74 @@
             .inline-captcha-right { display: flex; flex-direction: column; align-items: center; }
             .inline-captcha-brand-text { font-size: 8px; color: #555; text-align: center; margin-top: 2px; }
 
-            /* FENÊTRE DE DÉFI (POP-UP) */
-            .inline-captcha-popup {
+            .inline-captcha-overlay {
                 display: none;
-                position: absolute;
-                bottom: 85px;
-                left: 0;
-                width: 300px;
+                position: fixed;
+                top: 0; left: 0;
+                width: 100vw; height: 100vh;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999998;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .inline-captcha-popup {
                 background: white;
                 border: 1px solid #ccc;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                border-radius: 4px;
-                z-index: 99999;
-                padding: 15px;
+                box-shadow: 0 4px 25px rgba(0,0,0,0.3);
+                border-radius: 6px;
+                width: 320px;
+                padding: 20px;
                 box-sizing: border-box;
+                animation: inline-fadein 0.2s ease-out;
+            }
+            @keyframes inline-fadein {
+                from { transform: scale(0.9); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
             }
             .inline-captcha-popup-header {
                 background-color: #4d90fe;
                 color: white;
-                padding: 10px;
-                margin: -15px -15px 15px -15px;
+                padding: 12px;
+                margin: -20px -20px 15px -20px;
                 font-size: 14px;
-                border-top-left-radius: 4px;
-                border-top-right-radius: 4px;
+                border-top-left-radius: 5px;
+                border-top-right-radius: 5px;
+                line-height: 1.4;
+            }
+            .inline-captcha-progress {
+                font-size: 12px;
+                color: #555;
+                margin-bottom: 10px;
+                font-weight: bold;
+                text-align: right;
             }
             .inline-captcha-grid {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
+                gap: 12px;
                 margin-bottom: 15px;
             }
             .inline-captcha-tile {
                 border: 1px solid #ddd;
-                padding: 10px;
+                padding: 15px 10px;
                 text-align: center;
                 cursor: pointer;
-                background: #fcfcfc;
-                font-size: 20px;
+                background: #fdfdfd;
+                font-size: 24px;
                 border-radius: 4px;
+                transition: background 0.15s;
+                user-select: none;
             }
-            .inline-captcha-tile:hover { background: #eee; }
+            .inline-captcha-tile:hover { background: #f0f0f0; border-color: #bbb; }
         `;
         document.head.appendChild(style);
     }
 
-    // 2. Création du Widget InlineCAPTCHA avec Logo SVG natif
+    // 2. Structure HTML
     const uniqueId = Math.random().toString(36).substr(2, 9);
     const widget = document.createElement("div");
     widget.className = "inline-captcha-container";
-    
     widget.innerHTML = `
         <label class="inline-captcha-left" id="label-${uniqueId}">
             <input type="checkbox" class="inline-captcha-checkbox" id="check-${uniqueId}">
@@ -134,64 +151,96 @@
             </svg>
             <div class="inline-captcha-brand-text">InlineCAPTCHA</div>
         </div>
+    `;
 
-        <div class="inline-captcha-popup" id="popup-${uniqueId}">
-            <div class="inline-captcha-popup-header">
-                <strong>Défi de sécurité :</strong><br>Sélectionnez le <strong>CARRÉ (⬛)</strong> pour continuer.
-            </div>
+    const overlay = document.createElement("div");
+    overlay.className = "inline-captcha-overlay";
+    overlay.innerHTML = `
+        <div class="inline-captcha-popup">
+            <div class="inline-captcha-popup-header" id="header-${uniqueId}"></div>
+            <div class="inline-captcha-progress" id="progress-${uniqueId}">Progression : 1 / 5</div>
             <div class="inline-captcha-grid" id="grid-${uniqueId}"></div>
         </div>
     `;
 
     currentScript.parentNode.insertBefore(widget, currentScript);
+    document.body.appendChild(overlay);
 
-    // 3. Éléments du DOM internes
+    // 3. Variables de ciblage DOM
     const label = widget.querySelector(`#label-${uniqueId}`);
     const customBox = widget.querySelector(`#box-${uniqueId}`);
     const spinner = widget.querySelector(`#spinner-${uniqueId}`);
     const checkmark = widget.querySelector(`#mark-${uniqueId}`);
-    const popup = widget.querySelector(`#popup-${uniqueId}`);
-    const grid = widget.querySelector(`#grid-${uniqueId}`);
+    
+    const header = overlay.querySelector(`#header-${uniqueId}`);
+    const progressDisplay = overlay.querySelector(`#progress-${uniqueId}`);
+    const grid = overlay.querySelector(`#grid-${uniqueId}`);
 
     let isVerified = false;
+    let currentStep = 1;
+    const totalStepsNeeded = 5;
 
-    // Banque d'icônes pour le défi
-    const targetItem = "⬛"; // Ce qu'il faut chercher
-    const noiseItems = ["🔺", "🔵", "⭐", "🔶", "🛑"]; // Les leurres
+    // BANQUE DE 10 DÉFIS UNIQUES
+    const challenges = [
+        { instruction: "Sélectionnez le <strong>CARRÉ (⬛)</strong>.", target: "⬛", noise: ["🔺", "🔵", "⭐", "🔶", "🛑"] },
+        { instruction: "Sélectionnez le <strong>CHAT (🐱)</strong>.", target: "🐱", noise: ["🚗", "🍏", "🍕", "⏰", "✈️"] },
+        { instruction: "Sélectionnez la <strong style='color:#3498db;'>VOITURE BLEUE (🚙)</strong>.", target: "🚙", noise: ["🚗", "🚕", "🚑", "🚒", "🚜"] },
+        { instruction: "Sélectionnez la <strong>POMME VERTE (🍏)</strong>.", target: "🍏", noise: ["🏀", "🚀", "🦊", "🍦", "🛸"] },
+        { instruction: "Sélectionnez le <strong>MARTEAU (🔨)</strong>.", target: "🔨", noise: ["🍩", "🍍", "🦁", "🛹", "🎈"] },
+        { instruction: "Sélectionnez l'<strong>AVION (✈️)</strong>.", target: "✈️", noise: ["⛵", "🚲", "🛴", "🛺", "🛸"] },
+        { instruction: "Sélectionnez le <strong>BALLON DE FOOT (⚽)</strong>.", target: "⚽", noise: ["🏀", "🏈", "🎾", "🏐", "🎱"] },
+        { instruction: "Sélectionnez la <strong>PIZZA (🍕)</strong>.", target: "🍕", noise: ["🍔", "🍟", "🌭", "🍣", "🍦"] },
+        { instruction: "Sélectionnez la <strong>GUITARE (🎸)</strong>.", target: "🎸", noise: ["🎨", "🎧", "🎮", "🎲", "🎬"] },
+        { instruction: "Sélectionnez la <strong style='color:#e74c3c;'>VALISE ROUGE (🧳)</strong>.", target: "🧳", noise: ["👜", "🎒", "💼", "👛", "📁"] }
+    ];
 
-    // Générer le défi aléatoirement
+    // 4. Logique du jeu de défis
     function launchChallenge() {
         grid.innerHTML = "";
+        progressDisplay.textContent = "Defi : " + currentStep + " ou " + totalStepsNeeded;
         
-        // Créer une liste de 9 cases contenant 1 carré et 8 formes aléatoires
-        let items = [targetItem];
+        // Choisir un défi aléatoire parmi les 10
+        const currentChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+        header.innerHTML = "<strong>Défi de sécurité :</strong><br>" + currentChallenge.instruction;
+
+        // Construire le set de 9 cases
+        let items = [currentChallenge.target];
         for (let i = 0; i < 8; i++) {
-            const randomNoise = noiseItems[Math.floor(Math.random() * noiseItems.length)];
+            const randomNoise = currentChallenge.noise[Math.floor(Math.random() * currentChallenge.noise.length)];
             items.push(randomNoise);
         }
-        // Mélanger le tableau
+
+        // Mélanger la grille
         items.sort(function() { return 0.5 - Math.random(); });
 
-        // Injecter les tuiles dans la grille
+        // Générer les tuiles cliquables
         items.forEach(function(icon) {
             const tile = document.createElement("div");
             tile.className = "inline-captcha-tile";
             tile.textContent = icon;
             
             tile.addEventListener("click", function() {
-                if (icon === targetItem) {
-                    // RÉUSSI !
-                    popup.style.display = "none";
-                    spinner.style.display = "none";
-                    customBox.style.backgroundColor = "transparent";
-                    checkmark.style.display = "block";
-                    isVerified = true;
-                    
-                    console.log("Defi InlineCAPTCHA reussi");
-                    document.dispatchEvent(new CustomEvent("captchaSuccess", { detail: { id: uniqueId } }));
+                if (icon === currentChallenge.target) {
+                    if (currentStep >= totalStepsNeeded) {
+                        // VICTOIRE TOTALE DES 5 ÉTAPES
+                        overlay.style.display = "none";
+                        spinner.style.display = "none";
+                        customBox.style.backgroundColor = "transparent";
+                        checkmark.style.display = "block";
+                        isVerified = true;
+                        
+                        console.log("Les 5 defis ont ete reussis");
+                        document.dispatchEvent(new CustomEvent("captchaSuccess", { detail: { id: uniqueId } }));
+                    } else {
+                        // ÉTAPE SUIVANTE
+                        currentStep++;
+                        launchChallenge();
+                    }
                 } else {
-                    // ÉCHEC : On secoue et on régénère le défi
-                    alert("Faux ! Reessayez.");
+                    // ÉCHEC : Reset complet à 1 ou 5
+                    console.log("Erreur dans le choix. Reset du score");
+                    alert("Erreur ! Recommencez depuis le debut.");
+                    currentStep = 1;
                     launchChallenge();
                 }
             });
@@ -199,7 +248,7 @@
         });
     }
 
-    // Clic sur la checkbox principale
+    // Gestion du clic de base
     label.addEventListener("click", function(e) {
         e.preventDefault();
         if (isVerified) return;
@@ -207,10 +256,10 @@
         customBox.style.borderColor = "transparent";
         spinner.style.display = "block";
 
-        // Déclenche le pop-up du défi après 800ms de "réflexion"
         setTimeout(function() {
+            currentStep = 1; // Reset de sécurité à chaque ouverture volontaire
             launchChallenge();
-            popup.style.display = "block";
+            overlay.style.display = "flex";
         }, 800);
     });
 
