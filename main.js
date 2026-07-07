@@ -293,8 +293,8 @@
             // ================= TYPE 2 : COMBINAISON ET EXÉCUTION CLAVIER =================
             activeChallengeType = "KEYS";
             const combos = [
-                { keys: ["control", "shift"], text: "CTRL ou SHIFT" },
-                { keys: ["alt", "shift"], text: "ALT ou SHIFT" }
+                { keys: ["control", "shift"], text: "CTRL et SHIFT" },
+                { keys: ["alt", "shift"], text: "ALT et SHIFT" }
             ];
             const chosenCombo = combos[Math.floor(Math.random() * combos.length)];
             requiredKeys = chosenCombo.keys;
