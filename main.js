@@ -240,7 +240,7 @@
                 // Défi : Le piège absolu (Rien n'est sélectionnable)
                 activeChallengeType = "TRAP";
                 header.innerHTML = "<strong>Vérification :</strong> Ne touchez à aucune case de la grille. Cliquez directement sur le bouton vert en bas.";
-                actionBtn.textContent = "Confirmer l'absence d'élément";
+                actionBtn.textContent = "Suivant";
 
                 for (let i = 0; i < 9; i++) {
                     let tile = document.createElement("div");
@@ -254,10 +254,10 @@
         } else if (typeChoice === 1) {
                 // ================= TYPE 1 : APPUI LONG AVEC REMPLISSAGE CSS SANS TEMPS TEXTUEL =================
             activeChallengeType = "HOLD";
-            targetHoldTime = Math.floor(Math.random() * 2) + 2; // Demande 2 ou 3 secondes secrètes
+            targetHoldTime = Math.floor(Math.random() * 16) + 5; // Demande entre 5 ou 20 secondes secrètes
     
-            header.innerHTML = "<strong>Analyse Comportementale :</strong> Maintenez le bouton vert enfoncé jusqu'à ce qu'il soit <strong>complètement rempli</strong> de vert foncé, puis relâchez immédiatement.";
-            actionBtn.textContent = "Maintenir pour remplir...";
+            header.innerHTML = "<strong>Analyse Comportementale :</strong> Maintenez le bouton vert enfoncé jusqu'à ce qu'il soit <strong>complètement rempli</strong> de vert foncé, puis relâchez.";
+            actionBtn.textContent = "Maintenir longuement...";
             grid.style.display = "none";
     
             actionBtn.onmousedown = function() {
@@ -274,7 +274,7 @@
                     actionBtn.style.backgroundImage = `linear-gradient(to right, #27ae60 ${percentage}%, #2ecc71 ${percentage}%)`;
             
                     if (percentage >= 100) {
-                        actionBtn.textContent = "RELACHEZ MAINTENANT !";
+                        actionBtn.textContent = "Vous pouvez relacher.";
                     }
                 }, 30);
             };
@@ -288,7 +288,7 @@
                 const targetInMs = targetHoldTime * 1000;
         
         // Valide si le bouton a été maintenu au moins le temps requis sans dépasser la marge d'erreur
-                if (durationElapsed >= targetInMs && durationElapsed <= (targetInMs + allowedMargin)) {
+                if (durationElapsed >= targetInMs) {
                     advanceStep();
                 } else {
                     failChallenge();
@@ -314,7 +314,7 @@
 
     // 4. Moteur logique centralisé
     function launchChallenge() {
-        progressDisplay.textContent = "Progression : " + currentStep + " ou " + totalStepsNeeded;
+        progressDisplay.textContent = "Progression : " + currentStep + "/" + totalStepsNeeded;
         buildChallenge();
     }
 
@@ -333,7 +333,7 @@
     }
 
     function failChallenge() {
-        alert("Action incorrecte ou mauvais timing ! Le test recommence.");
+        alert("Action incorrecte ! Le test recommence.");
         currentStep = 1;
         launchChallenge();
     }
