@@ -252,35 +252,42 @@
             }
 
         } else if (typeChoice === 1) {
-            // ================= TYPE 1 : APPUI LONG AVEC COMPTEUR VISUEL =================
+                // ================= TYPE 1 : APPUI LONG AVEC REMPLISSAGE CSS SANS TEMPS TEXTUEL =================
             activeChallengeType = "HOLD";
-            targetHoldTime = Math.floor(Math.random() * 2) + 2; // Demande 2 ou 3 secondes
-            
-            header.innerHTML = "<strong>Test de Rythme :</strong> Maintenez le bouton vert enfoncé pendant au moins <strong>" + targetHoldTime + " secondes</strong>, puis relâchez immédiatement.";
-            actionBtn.textContent = "Maintenir enfoncé ici";
+            targetHoldTime = Math.floor(Math.random() * 2) + 2; // Demande 2 ou 3 secondes secrètes
+    
+            header.innerHTML = "<strong>Analyse Comportementale :</strong> Maintenez le bouton vert enfoncé jusqu'à ce qu'il soit <strong>complètement rempli</strong> de vert foncé, puis relâchez immédiatement.";
+            actionBtn.textContent = "Maintenir pour remplir...";
             grid.style.display = "none";
-            
-            timerDisplay.style.display = "block";
-            timerDisplay.textContent = "0.0s ou " + targetHoldTime + ".0s";
-
+    
             actionBtn.onmousedown = function() {
                 startTime = performance.now();
-                actionBtn.textContent = "Maintenez...";
-                
+                actionBtn.textContent = "Remplissage en cours...";
+        
+        // Intervalle fluide (toutes les 30ms) pour mettre à jour la jauge de remplissage CSS
                 visualInterval = setInterval(function() {
-                    let elapsed = (performance.now() - startTime) / 1000;
-                    timerDisplay.textContent = elapsed.toFixed(1) + "s ou " + targetHoldTime + ".0s";
-                }, 100);
+                    let elapsedMs = performance.now() - startTime;
+                    let targetMs = targetHoldTime * 1000;
+                    let percentage = Math.min((elapsedMs / targetMs) * 100, 100);
+            
+            // Modification dynamique des paliers de couleur du gradient linéaire
+                    actionBtn.style.backgroundImage = `linear-gradient(to right, #27ae60 ${percentage}%, #2ecc71 ${percentage}%)`;
+            
+                    if (percentage >= 100) {
+                        actionBtn.textContent = "RELACHEZ MAINTENANT !";
+                    }
+                }, 30);
             };
-
+    
             actionBtn.onmouseup = function() {
                 if (startTime === 0) return;
                 clearInterval(visualInterval);
-                
+        
                 const durationElapsed = performance.now() - startTime;
                 startTime = 0; 
                 const targetInMs = targetHoldTime * 1000;
-                
+        
+        // Valide si le bouton a été maintenu au moins le temps requis sans dépasser la marge d'erreur
                 if (durationElapsed >= targetInMs && durationElapsed <= (targetInMs + allowedMargin)) {
                     advanceStep();
                 } else {
