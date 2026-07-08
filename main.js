@@ -262,7 +262,6 @@
     
             actionBtn.onmousedown = function() {
                 startTime = performance.now();
-                actionBtn.textContent = "Remplissage en cours...";
         
         // Intervalle fluide (toutes les 30ms) pour mettre à jour la jauge de remplissage CSS
                 visualInterval = setInterval(function() {
@@ -289,6 +288,7 @@
         
         // Valide si le bouton a été maintenu au moins le temps requis sans dépasser la marge d'erreur
                 if (durationElapsed >= targetInMs) {
+                    actionBtn.style.pointerEvents = "none";
                     advanceStep();
                 } else {
                     failChallenge();
