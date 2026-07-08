@@ -148,7 +148,7 @@
         grid.innerHTML = "";
         grid.style.display = "grid";
         timerDisplay.style.display = "none";
-        
+        actionBtn.style.pointerEvents = "auto";
         actionBtn.onmousedown = null;
         actionBtn.onmouseup = null;
         actionBtn.onmouseleave = null;
