@@ -100,7 +100,7 @@
     overlay.innerHTML = `
         <div class="inline-captcha-popup" oncontextmenu="return false;">
             <div class="inline-captcha-popup-header" id="header-${uniqueId}"></div>
-            <div class="inline-captcha-progress" id="progress-${uniqueId}">Progression : 1 ou 5</div>
+            <div class="inline-captcha-progress" id="progress-${uniqueId}">Progression : 1/5</div>
             <div class="inline-captcha-timer-display" id="timer-${uniqueId}">0.0s ou 0.0s</div>
             <div class="inline-captcha-grid" id="grid-${uniqueId}"></div>
             <button type="button" class="inline-captcha-action-btn" id="action-${uniqueId}">Valider</button>
@@ -167,15 +167,24 @@
                 // Défi classique : Intrus icône
                 activeChallengeType = "CLASSIC_ICON";
                 const options = [
-                    { inst: "Sélectionnez l'<strong>AVION</strong> dans la grille.", target: "plane", noise: "car" },
-                    { inst: "Sélectionnez la <strong>CLÉ</strong> dans la grille.", target: "key", noise: "car" }
+                    { inst: "Sélectionnez l'<strong>AVION</strong> dans la grille.", target: "plane", noise: ["car", "key"] },
+                    { inst: "Sélectionnez la <strong>CLÉ</strong> dans la grille.", target: "key", noise: ["car", "plane"] }
                 ];
                 const chosen = options[Math.floor(Math.random() * options.length)];
                 header.innerHTML = "<strong>Vérification :</strong> " + chosen.inst;
                 actionBtn.textContent = "Sélectionnez l'image correcte";
 
+                // On ajoute la réponse correcte
                 let tilesData = [{ correct: true, html: svgs[chosen.target] }];
-                for (let i = 0; i < 8; i++) { tilesData.push({ correct: false, html: svgs[chosen.noise] }); }
+        
+                // On ajoute tous les éléments de bruit présents dans la liste
+                chosen.noise.forEach(function(noiseKey) {
+                    if (svgs[noiseKey]) {
+                        tilesData.push({ correct: false, html: svgs[noiseKey] });
+                    }
+                });
+        
+                // Mélange aléatoire des cases (le correct ou les bruits)
                 tilesData.sort(function() { return 0.5 - Math.random(); });
 
                 tilesData.forEach(function(data) {
