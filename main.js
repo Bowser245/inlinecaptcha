@@ -140,7 +140,13 @@
     const svgs = {
         plane: `<svg viewBox="0 0 24 24" fill="#34495e"><path d="M21,16V14L13,9V3.5A1.5,1.5 0 0,0 11.5,2A1.5,1.5 0 0,0 10,3.5V9L2,14V16L10,13.5V19L8,20.5V22L11.5,21L15,22V20.5L13,19V13.5L21,16Z"/></svg>`,
         car: `<svg viewBox="0 0 24 24" fill="#e74c3c"><path d="M18.92,11L18.03,8.33C17.78,7.58 17.07,7 16.22,7H7.78C6.93,7 6.22,7.58 5.97,8.33L5.08,11C4.46,11.75 4,12.81 4,14V20A1,1 0 0,0 5,21H6A1,1 0 0,0 7,20V19H17V20A1,1 0 0,0 18,21H19A1,1 0 0,0 20,20V14C20,12.81 19.54,11.75 18.92,11M6.85,9H17.14L17.81,11H6.18L6.85,9M8,16A1.5,1.5 0 1,1 9.5,14.5A1.5,1.5 0 0,1 8,16M16,16A1.5,1.5 0 1,1 17.5,14.5A1.5,1.5 0 0,1 16,16Z"/></svg>`,
-        key: `<svg viewBox="0 0 24 24" fill="#7f8c8d"><path d="M7,14A5,5 0 0,1 2,9A5,5 0 0,1 7,4A5,5 0 0,1 12,9C12,10.7 11.16,12.21 9.88,13.12L14,17.24V20H17V17H20V14L14.76,8.76M7,6A3,3 0 0,0 4,9A3,3 0 0,0 7,12A3,3 0 0,0 10,9Z"/></svg>`
+        key: `<svg viewBox="0 0 24 24" fill="#7f8c8d"><path d="M7,14A5,5 0 0,1 2,9A5,5 0 0,1 7,4A5,5 0 0,1 12,9C12,10.7 11.16,12.21 9.88,13.12L14,17.24V20H17V17H20V14L14.76,8.76M7,6A3,3 0 0,0 4,9A3,3 0 0,0 7,12A3,3 0 0,0 10,9Z"/></svg>`,
+        train: `<svg viewBox="0 0 24 24" fill="#3498db"><path d="M19 2H5C3.34 2 2 3.34 2 5V17C2 18.1 2.9 19 4 19V21C4 21.55 4.45 22 5 22H6C6.55 22 7 21.55 7 21V19H17V21C17 21.55 17.45 22 18 22H19C19.55 22 20 21.55 20 21V19C21.1 19 22 18.1 22 17V5C22 3.34 20.66 2 19 2ZM6 16C5.17 16 4.5 15.33 4.5 14.5C4.5 13.67 5.17 13 6 13C6.83 13 7.5 13.67 7.5 14.5C7.5 15.33 6.83 16 6 16ZM18 16C17.17 16 16.5 15.33 16.5 14.5C16.5 13.67 17.17 13 18 13C18.83 13 19.5 13.67 19.5 14.5C19.5 15.33 18.83 16 18 16ZM20 10H4V5C4 4.45 4.45 4 5 4H19C19.55 4 20 4.45 20 5V10Z"/></svg>`,
+        traffic_light: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="7" y="2" width="10" height="20" rx="2" fill="#333333"/><circle cx="12" cy="6" r="2.5" fill="#e74c3c"/><circle cx="12" cy="12" r="2.5" fill="#f1c40f"/><circle cx="12" cy="18" r="2.5" fill="#2ecc71"/></svg>`,
+        bicycle: `<svg viewBox="0 0 24 24" fill="#e67e22"><path d="M15.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM5 12c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5zm7-6.2c-1 0-1.9-.7-2-1.7l-.6-3.1c-.2-1.1.5-2.1 1.6-2.3l2.8-.5 1.3-2.2c.4-.7 1.2-1 1.9-.7l2.8 1.1c.6.2 1 1 .7 1.6s-1 1-1.6.7l-2.1-.8-1.1 1.9 2.1 1.8c.5.4.8 1 .8 1.7v3.5c0 .8-.7 1.5-1.5 1.5s-1.5-.7-1.5-1.5v-2.3l-1.5-1.3-.8 4.2c-.1.5-.6.9-1.1.9zm7-2.3c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5z"/></svg>`,
+        boat: `<svg viewBox="0 0 24 24" fill="#2980b9"><path d="M20 12.5L12 6l-8 6.5V11L12 4.5l8 6.5v1.5zM12 2L4.3 8.3c-.5.4-.8 1-.8 1.7v7.5c0 1.1.9 2 2 2h13c1.1 0 2-.9 2-2V10c0-.7-.3-1.3-.8-1.7L12 2zm6.5 15.5h-13v-6.2l6.5-5.3 6.5 5.3v6.2z"/></svg>`,
+        truck: `<svg viewBox="0 0 24 24" fill="#7f8c8d"><path d="M20 8h-3V4H4c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM7 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5 .67 1.5 1.5-.67 1.5-1.5 1.5zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5 .67 1.5 1.5-.67 1.5-1.5 1.5zM15 12H4V6h11v6z"/></svg>`,
+        pedestrian: `<svg viewBox="0 0 24 24" fill="#16a085"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.4L6.8 22h2.1l2.1-9.5 2.1 4.5V22h2v-6.8l-2.4-5.1 1.5-4c1.1 1.4 2.8 2.4 4.8 2.4v-2c-1.8 0-3.3-1.1-3.9-2.7l-.8-2c-.3-.8-1.1-1.3-2-1.3H9c-1.1 0-2 .9-2 2v5h2V8.4h.8z"/></svg>`
     };
 
     // 3. Système Multi-Types de défis avec tirage aléatoire imbriqué
@@ -167,8 +173,15 @@
                 // Défi classique : Intrus icône
                 activeChallengeType = "CLASSIC_ICON";
                 const options = [
-                    { inst: "Sélectionnez l'<strong>AVION</strong> dans la grille.", target: "plane", noise: ["car", "key"] },
-                    { inst: "Sélectionnez la <strong>CLÉ</strong> dans la grille.", target: "key", noise: ["car", "plane"] }
+                    { inst: "Sélectionnez l'<strong>AVION</strong> dans la grille.", target: "plane", noise: ["car", "key", "train", "traffic_light", "bicycle", "boat", "truck", "pedestrian"] },
+                    { inst: "Sélectionnez la <strong>VOITURE</strong> dans la grille.", target: "car", noise: ["plane", "key", "train", "traffic_light", "bicycle", "boat", "truck", "pedestrian"] },
+                    { inst: "Sélectionnez la <strong>CLÉ</strong> dans la grille.", target: "key", noise: ["plane", "car", "train", "traffic_light", "bicycle", "boat", "truck", "pedestrian"] },
+                    { inst: "Sélectionnez le <strong>TRAIN</strong> dans la grille.", target: "train", noise: ["plane", "car", "key", "traffic_light", "bicycle", "boat", "truck", "pedestrian"] },
+                    { inst: "Sélectionnez le <strong>FEU TRICOLORE</strong> dans la grille.", target: "traffic_light", noise: ["plane", "car", "key", "train", "bicycle", "boat", "truck", "pedestrian"] },
+                    { inst: "Sélectionnez le <strong>VÉLO</strong> dans la grille.", target: "bicycle", noise: ["plane", "car", "key", "train", "traffic_light", "boat", "truck", "pedestrian"] },
+                    { inst: "Sélectionnez le <strong>BATEAU</strong> dans la grille.", target: "boat", noise: ["plane", "car", "key", "train", "traffic_light", "bicycle", "truck", "pedestrian"] },
+                    { inst: "Sélectionnez le <strong>CAMION</strong> dans la grille.", target: "truck", noise: ["plane", "car", "key", "train", "traffic_light", "bicycle", "boat", "pedestrian"] },
+                    { inst: "Sélectionnez le <strong>PIÉTON</strong> dans la grille.", target: "pedestrian", noise: ["plane", "car", "key", "train", "traffic_light", "bicycle", "boat", "truck"] }
                 ];
                 const chosen = options[Math.floor(Math.random() * options.length)];
                 header.innerHTML = "<strong>Vérification :</strong> " + chosen.inst;
@@ -266,7 +279,7 @@
             activeChallengeType = "HOLD";
             targetHoldTime = Math.floor(Math.random() * 16) + 5; // Demande entre 5 ou 20 secondes secrètes
     
-            header.innerHTML = "<strong>Analyse Comportementale :</strong> Maintenez le bouton vert enfoncé jusqu'à ce qu'il soit <strong>complètement rempli</strong> de vert foncé, puis relâchez immédiatemnt.";
+            header.innerHTML = "<strong>Analyse Comportementale :</strong> Maintenez le bouton vert enfoncé jusqu'à ce qu'il soit <strong>complètement rempli</strong> de vert foncé, puis relâchez immédiatement.";
             actionBtn.textContent = "Maintenir longuement...";
             grid.style.display = "none";
     
