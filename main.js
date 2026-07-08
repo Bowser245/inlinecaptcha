@@ -146,6 +146,7 @@
     // 3. Système Multi-Types de défis avec tirage aléatoire imbriqué
     function buildChallenge() {
         grid.innerHTML = "";
+        actionBtn.style.backgroundImage = "none";
         grid.style.display = "grid";
         timerDisplay.style.display = "none";
         actionBtn.style.pointerEvents = "auto";
@@ -256,7 +257,7 @@
             activeChallengeType = "HOLD";
             targetHoldTime = Math.floor(Math.random() * 16) + 5; // Demande entre 5 ou 20 secondes secrètes
     
-            header.innerHTML = "<strong>Analyse Comportementale :</strong> Maintenez le bouton vert enfoncé jusqu'à ce qu'il soit <strong>complètement rempli</strong> de vert foncé, puis relâchez.";
+            header.innerHTML = "<strong>Analyse Comportementale :</strong> Maintenez le bouton vert enfoncé jusqu'à ce qu'il soit <strong>complètement rempli</strong> de vert foncé, puis relâchez immédiatemnt.";
             actionBtn.textContent = "Maintenir longuement...";
             grid.style.display = "none";
     
